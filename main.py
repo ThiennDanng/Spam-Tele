@@ -9,7 +9,7 @@ import psutil
 from keep_alive import keep_alive
 keep_alive()
 
-bot_token = '6880927123:AAHsfx5DTabLvTYIWD0LpqMTWbEwT98jChQ' 
+bot_token = Bot(token=os.environ.get('token')) 
 bot = telebot.TeleBot(bot_token)
 chat_id_test = -1002135489631
 processes = []
