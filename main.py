@@ -6,10 +6,11 @@ import subprocess
 import requests
 import datetime
 import psutil
+from aiogram import Bot, Dispatcher, executor, types
 from keep_alive import keep_alive
 keep_alive()
 
-bot_token = Bot(token=os.environ.get('token')) 
+bot_token = Bot(token=os.environ.get('token'))
 bot = telebot.TeleBot(bot_token)
 chat_id_test = -1002135489631
 processes = []
