@@ -12,6 +12,7 @@ keep_alive()
 
 bot_token = Bot(token=os.environ.get('token'))
 bot = telebot.TeleBot(bot_token)
+dp = Dispatcher(bot_token)
 chat_id_test = -1002135489631
 processes = []
 ADMIN_ID = '6764044761'
@@ -170,5 +171,5 @@ def echo_all(message):
         bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     except Exception as e:
         print(f"Không thể xóa tin nhắn: {e}")
-bot.polling()
+executor.start_polling(dp)
 
