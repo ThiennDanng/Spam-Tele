@@ -6,13 +6,11 @@ import subprocess
 import requests
 import datetime
 import psutil
-from aiogram import Bot, Dispatcher, executor, types
 from keep_alive import keep_alive
 keep_alive()
 
-bot_token = Bot(token=os.environ.get('token'))
+bot_token = '6880927123:AAHsfx5DTabLvTYIWD0LpqMTWbEwT98jChQ' 
 bot = telebot.TeleBot(bot_token)
-dp = Dispatcher(bot_token)
 chat_id_test = -1002135489631
 processes = []
 ADMIN_ID = '6764044761'
@@ -171,5 +169,5 @@ def echo_all(message):
         bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     except Exception as e:
         print(f"Không thể xóa tin nhắn: {e}")
-bot.polling(dp)
+bot.polling()
 
