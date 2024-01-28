@@ -165,7 +165,7 @@ def help(message):
         print(f"Không thể xóa tin nhắn: {e}")
 @bot.message_handler(commands=['premium'])
 def pre(message):
-    bot.send_message(chat_id=allowed_group_id,text='Thông Tin Bản 𝐏𝐑𝐄𝐌𝐈𝐔𝐌:\n\n+ Api nhiều hơn free\n+ Thời gian Spam: 200s\n+ Không giới hạn time Spam\n\nBảng Giá Premium:\n+ 15k - 1 Tuần (7 ngày)\n+ 30k - 1 Tháng (30 ngày)\n+ 50k - 5 Tháng (150 ngày)\n+ 99k - 1 Năm (365 ngày)\n\nVui lòng liên hệ @thiendangg để được mua 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 !')
+    bot.send_message(chat_id=allowed_group_id,text='Thông Tin Bản 𝐏𝐑𝐄𝐌𝐈𝐔𝐌:\n\n+ Api nhiều hơn free\n+ Có Spam Call (Đặc Biệt)\n+ Thời gian Spam: 200s\n+ Không giới hạn time Spam\n\nBảng Giá Premium:\n+ 15k - 1 Tuần (7 ngày)\n+ 30k - 1 Tháng (30 ngày)\n+ 50k - 5 Tháng (150 ngày)\n+ 99k - 1 Năm (365 ngày)\n\nVui lòng liên hệ @thiendangg để được mua 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 !')
     try:
         bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     except Exception as e:
