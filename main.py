@@ -267,4 +267,4 @@ def echo_all(message):
         bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     except Exception as e:
         print(f"Không thể xóa tin nhắn: {e}")
-bot.polling(non_stop=True)
+bot.polling()
