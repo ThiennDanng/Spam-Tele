@@ -1,4 +1,4 @@
 flask
 telebot
 psutil
-aiogram==2.23.1
+
