@@ -37,7 +37,7 @@ def superspam(message):
     return
   user_id = message.from_user.id
   if not os.path.exists(f"./vip/{user_id}.txt"):
-    bot.send_message(chat_id=allowed_group_id, text='Vui lòng đăng kí 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 để sử dụng')
+    bot.send_message(chat_id=allowed_group_id, text='Vui lòng đăng kí 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 để sử dụng\nSử dụng lệnh /premium để xem chi tiết.')
     try:
         bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     except Exception as e:
