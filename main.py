@@ -33,7 +33,7 @@ def superspam(message):
   gr = message.chat.id
   user = message.from_user.full_name
   if gr != allowed_group_id:
-    bot.send_message(chat_id=message.from_user.id,text=f'Bot chỉ hoạt động trong nhóm SPAM SMS CALL (PRIVATE)')
+    bot.send_message(chat_id=message.from_user.id,text=f'Bot chỉ hoạt động trong nhóm: t.me/spamnonstopv2')
     return
   user_id = message.from_user.id
   if not os.path.exists(f"./vip/{user_id}.txt"):
@@ -103,7 +103,7 @@ def spam(message):
     gr = message.chat.id
     user = message.from_user.full_name
     if gr != allowed_group_id:
-        bot.send_message(chat_id=message.from_user.id,text=f'Bot chỉ hoạt động trong nhóm SPAM SMS CALL (PRIVATE)')
+        bot.send_message(chat_id=message.from_user.id,text=f'Bot chỉ hoạt động trong nhóm: t.me/spamnonstopv2')
         return
     if len(message.text.split()) == 1:
         bot.send_message(chat_id=allowed_group_id,text='/spam + [SĐT]')
