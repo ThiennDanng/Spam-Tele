@@ -179,6 +179,7 @@ def admin(message):
   - /ongoing : xem số quy trình đang chạy
   - /resetbot : reset tất cả bot
   - /stopall : dừng lại tất cả các bot
+  - /adduser : thêm người dùng premium
   - /admin : Admin Panel (ADMIN)
   '''
   bot.send_message(chat_id=ADMIN_ID,text= admin_panel)
