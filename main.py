@@ -38,10 +38,6 @@ def superspam(message):
   user_id = message.from_user.id
   if not os.path.exists(f"./vip/{user_id}.txt"):
     bot.send_message(chat_id=allowed_group_id, text='Vui lòng đăng kí 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 để sử dụng\nSử dụng lệnh /premium để xem chi tiết.')
-    try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
     return
   fo = open(f"./vip/{user_id}.txt")
   data = fo.read().split("|")
@@ -51,46 +47,22 @@ def superspam(message):
   so_ngay = int((ngay_hien_tai - qua_khu).days)
   if so_ngay < 0:
     bot.send_message(chat_id=allowed_group_id, text='𝐏𝐑𝐄𝐌𝐈𝐔𝐌 cài vào ngày khác !')
-    try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
     return
   if so_ngay >= int(data[1]):
     bot.send_message(chat_id=allowed_group_id,text='𝐏𝐑𝐄𝐌𝐈𝐔𝐌 Hết Hạn Vui Lòng ib Admin ')
-    try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
     os.remove(f"./vip/{user_id}.txt")
     return
   if len(message.text.split()) == 1:
         bot.send_message(chat_id=allowed_group_id,text='/sppre + [SĐT]')
-        try:
-            bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-        except Exception as e:
-            print(f"Không thể xóa tin nhắn: {e}")
         return
   phone_number = message.text.split()[1]
   phone_number_thay_doi = thay_doi_so_cuoi(phone_number)
   if not re.search("^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$",phone_number):
     bot.send_message(chat_id=allowed_group_id,text='SỐ ĐIỆN THOẠI KHÔNG HỢP LỆ !')
-    try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
     return
   if phone_number in ["0355806807"]:
     bot.send_message(chat_id=allowed_group_id,text="Số này nằm trong danh sách cấm!")
-    try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
     return
-  try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-  except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
   bot.send_message(chat_id=allowed_group_id,text=f'Thành công spam số: {phone_number_thay_doi}\nNgười Gửi Lệnh: {user}\nThời gian: 200s\nOwner: Châu Ngọc Thiên Đăng\nPlan Premium: 𝐀𝐜𝐭𝐢𝐯𝐞 ✅\nLưu ý: Chỉ nên dùng troll bạn bè')
   file_path = os.path.join(os.getcwd(), "api_vip.py")
   process = subprocess.Popen(["python", file_path, phone_number])
@@ -107,27 +79,15 @@ def spam(message):
         return
     if len(message.text.split()) == 1:
         bot.send_message(chat_id=allowed_group_id,text='/spam + [SĐT]')
-        try:
-            bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-        except Exception as e:
-            print(f"Không thể xóa tin nhắn: {e}")
         return
     phone_number = message.text.split()[1]
     phone_number_thay_doi = thay_doi_so_cuoi(phone_number)
     if not re.search("^(0?)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$",phone_number):
         bot.send_message(chat_id=allowed_group_id,text='SỐ ĐIỆN THOẠI KHÔNG HỢP LỆ !')
-        try:
-            bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-        except Exception as e:
-            print(f"Không thể xóa tin nhắn: {e}")
         return
     if phone_number in ["0355806807"]:
         # Số điện thoại nằm trong danh sách cấm
         bot.send_message(chat_id=allowed_group_id,text="Số này nằm trong danh sách cấm!")
-        try:
-            bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-        except Exception as e:
-            print(f"Không thể xóa tin nhắn: {e}")
         return
     current_time = time.time()
     if phone_number in last_used_times:
@@ -136,16 +96,8 @@ def spam(message):
             # Thông báo cho người dùng rằng số đang trong quá trình tấn công, cần chờ thời gian
             remaining_time = int(30 - (current_time - last_used_time))
             bot.send_message(chat_id=allowed_group_id,text=f"Số {phone_number} đang trong quá trình tấn công. Vui lòng chờ {remaining_time} giây mới tấn công lại số này.")
-            try:
-                bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-            except Exception as e:
-                print(f"Không thể xóa tin nhắn: {e}")
             return
     time.sleep(1)
-    try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
     bot.send_message(chat_id=allowed_group_id,text=f'Thành công spam số: {phone_number_thay_doi}\nNgười Gửi Lệnh: {user}\nThời gian: 90s\nOwner: Châu Ngọc Thiên Đăng\nPlan Premium: 𝐍𝐨𝐧𝐞 ❌\nLưu ý: Chỉ nên dùng troll bạn bè')
     last_used_times[phone_number] = current_time
     file_path = os.path.join(os.getcwd(), "api_free.py")
@@ -159,17 +111,9 @@ def st(message):
 def help(message):
     help_text = '''Bảng Menu Lệnh:\n\n~[+] => /spam + [SĐT]\n~[+] => /sppre + [SĐT] (𝐏𝐑𝐄𝐌𝐈𝐔𝐌)\n~[+] => /premium'''
     bot.send_message(chat_id=allowed_group_id,text=help_text)
-    try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
 @bot.message_handler(commands=['premium'])
 def pre(message):
     bot.send_message(chat_id=allowed_group_id,text='Thông Tin Bản 𝐏𝐑𝐄𝐌𝐈𝐔𝐌:\n\n+ Api nhiều hơn free\n+ Có Spam Call (Đặc Biệt)\n+ Thời gian Spam: 200s\n+ Không giới hạn time Spam\n\nBảng Giá Premium:\n+ 15k - 1 Tuần (7 ngày)\n+ 30k - 1 Tháng (30 ngày)\n+ 50k - 5 Tháng (150 ngày)\n+ 99k - 1 Năm (365 ngày)\n\nVui lòng liên hệ @thiendangg để được mua 𝐏𝐑𝐄𝐌𝐈𝐔𝐌 !')
-    try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
 
 @bot.message_handler(commands=['admin'])
 def admin(message):
@@ -263,8 +207,5 @@ def them(message):
 # lenh lo 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
-    try:
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-    except Exception as e:
-        print(f"Không thể xóa tin nhắn: {e}")
+    bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
 bot.polling()
