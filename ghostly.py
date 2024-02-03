@@ -50,7 +50,9 @@ from Crypto.Cipher import AES
 
 from cryptography.fernet import Fernet
 
-from discord import Embed, File, RequestsWebhookAdapter, Webhook
+from discord import Embed, File, Webhook
+from discord.http import RequestsWebhookAdapter
+
 
 from PIL import ImageGrab
 
