@@ -106,7 +106,7 @@ from discord import Embed, File, Webhook
 
 from discord import Webhook
 from discord.ext import commands
-from discord.ext.commands import RequestResponse
+
 
 from discord.http import Route, RequestsWebhookAdapter  # Import RequestsWebhookAdapter
 
