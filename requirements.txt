@@ -1,4 +1,0 @@
-flask
-telebot
-psutil
-requests
