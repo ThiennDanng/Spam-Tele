@@ -41,7 +41,3 @@ for module in ModuleRequirements:
         subprocess.Popen(f"\"{executable}\" -m pip install {module[1]} --quiet", shell=True)
         time.sleep(3)
 
-
-if __name__ == "__main__":
-    main()
-
